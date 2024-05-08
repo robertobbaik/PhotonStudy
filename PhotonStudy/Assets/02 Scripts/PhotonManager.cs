@@ -5,10 +5,13 @@ using Fusion;
 using UnityEngine.UI;
 using Fusion.Sockets;
 using System;
+using TMPro;
 
 public class PhotonManager : MonoBehaviour, INetworkRunnerCallbacks
 {
     public Button button_JoinRoom;
+    public TextMeshProUGUI text_Status;
+    public GameObject playerPrefab;
 
     void Start()
     {
