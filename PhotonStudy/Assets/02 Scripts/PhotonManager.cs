@@ -23,19 +23,24 @@ public class PhotonManager : MonoBehaviour, IPlayerJoined, IPlayerLeft
         });
     }
 
-    void Update()
-    {
-        
-    }
-
     public void OnClick_JoinRoom()
     {
-
+        GameStart(GameMode.Shared, "");
     }
 
-    public async void GameStart(GameMode mode, string roomName, string sceneName)
+    public async void GameStart(GameMode mode, string roomName)
     {
-        
+        networkRunner.ProvideInput = true;
+
+        var startGameArgs = new StartGameArgs()
+        {
+            GameMode = mode,
+            SessionName = roomName,
+            Scene = SceneRef.FromIndex(0),
+        };
+
+        await networkRunner.StartGame(startGameArgs);
+
     }
 
     public void PlayerJoined(PlayerRef player)
