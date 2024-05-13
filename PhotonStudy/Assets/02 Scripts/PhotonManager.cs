@@ -82,6 +82,7 @@ public class PhotonManager : MonoBehaviour, IPlayerJoined, IPlayerLeft, INetwork
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
     {
         Debug.LogWarning("I NetworkRunner Callback : Join ");
+        Debug.LogWarning("Joined Player : " + player.PlayerId);
     }
 
     public void OnPlayerLeft(NetworkRunner runner, PlayerRef player)
