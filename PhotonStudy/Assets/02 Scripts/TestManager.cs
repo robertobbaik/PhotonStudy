@@ -14,6 +14,9 @@ public class TestManager : NetworkBehaviour
 
     void Update()
     {
-        
+        if(Input.GetKeyDown(KeyCode.Space))
+        {
+            TestMessage("asdasd");
+        }
     }
 }
