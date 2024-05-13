@@ -15,6 +15,8 @@ public class PhotonManager : MonoBehaviour, IPlayerJoined, IPlayerLeft, INetwork
     public GameObject playerPrefab;
     public NetworkRunner networkRunner;
 
+    public string nickname;
+
     void Start()
     {
         button_JoinRoom.onClick.AddListener(() =>
@@ -83,6 +85,12 @@ public class PhotonManager : MonoBehaviour, IPlayerJoined, IPlayerLeft, INetwork
     {
         Debug.LogWarning("I NetworkRunner Callback : Join ");
         Debug.LogWarning("Joined Player : " + player.PlayerId);
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    private void RpcInitialSpaceshipSpawn11(string name)
+    {
+        Debug.Log("nickname : " + name);
     }
 
     public void OnPlayerLeft(NetworkRunner runner, PlayerRef player)
