@@ -59,7 +59,9 @@
     "AssembliesToWeave": [
         "Fusion.Unity",
         "Assembly-CSharp",
-        "Assembly-CSharp-firstpass"
+        "Assembly-CSharp-firstpass",
+        "Fusion.Addons.Physics",
+        "Fusion.Addons.FSM"
     ],
     "UseSerializableDictionary": true,
     "NullChecksForNetworkedProperties": true,
