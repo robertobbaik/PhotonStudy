@@ -6,17 +6,24 @@ using UnityEngine.UI;
 
 public class TestManager : NetworkBehaviour
 {
-    [Rpc(sources:RpcSources.InputAuthority, targets:RpcTargets.StateAuthority)]
-    public void TestMessage(string nickName)
+    public override void FixedUpdateNetwork()
     {
-        Debug.Log("nickname : " + nickName);
-    }
-
-    void Update()
-    {
-        if(Input.GetKeyDown(KeyCode.Space))
+        if (Input.GetMouseButtonDown(0))
         {
-            TestMessage("asdasd");
+            RpcTestMessage();
         }
     }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    private void RpcInitialSpaceshipSpawn11()
+    {
+        Debug.Log("asd");
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    private void RpcTestMessage()
+    {
+        Debug.Log("asd");
+    }
+
 }
