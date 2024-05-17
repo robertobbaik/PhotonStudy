@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Fusion;
+using Fusion.Photon.Realtime;
 using UnityEngine.UI;
 using Fusion.Sockets;
 using System;
@@ -85,6 +86,8 @@ public class PhotonManager : MonoBehaviour, IPlayerJoined, IPlayerLeft, INetwork
             ["maxLevel"] = 2,
             ["minLevel"] = 1
         };
+
+        
 
         var result = await runner.StartGame(new StartGameArgs()
         {
