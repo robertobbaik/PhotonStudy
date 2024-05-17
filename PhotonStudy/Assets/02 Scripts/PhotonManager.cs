@@ -6,6 +6,7 @@ using UnityEngine.UI;
 using Fusion.Sockets;
 using System;
 using TMPro;
+using System.Threading.Tasks;
 
 public class PhotonManager : MonoBehaviour, IPlayerJoined, IPlayerLeft, INetworkRunnerCallbacks
 {
@@ -18,14 +19,18 @@ public class PhotonManager : MonoBehaviour, IPlayerJoined, IPlayerLeft, INetwork
 
     void Start()
     {
-        button_JoinRoom.onClick.AddListener(() =>
+        button_JoinRoom.onClick.AddListener(async () =>
         {
-            OnClick_JoinRoom();
+            Task task = JoinLobby(networkRunner);
+            await task;
+            // OnClick_JoinRoom();
         });
 
-        button_SendMessage.onClick.AddListener(() =>
+        button_SendMessage.onClick.AddListener(async () =>
         {
-            OnClick_SendMessage();
+            //OnClick_SendMessage();
+            Task task = StartSharedRoom(networkRunner);
+            await task;
         });
     }
 
@@ -36,7 +41,7 @@ public class PhotonManager : MonoBehaviour, IPlayerJoined, IPlayerLeft, INetwork
 
     private void Update()
     {
-        if(Input.GetKeyDown(KeyCode.Escape))
+        if (Input.GetKeyDown(KeyCode.Escape))
         {
             Application.Quit();
         }
@@ -54,15 +59,66 @@ public class PhotonManager : MonoBehaviour, IPlayerJoined, IPlayerLeft, INetwork
         GameStart(GameMode.Shared, "");
     }
 
+    public void TestSessionProperty()
+    {
+       
+    }
+
+    public async Task JoinLobby(NetworkRunner runner)
+    {
+        var result = await runner.JoinSessionLobby(SessionLobby.Shared);
+
+        if (result.Ok)
+        {
+            Debug.Log("OK");
+        }
+        else
+        {
+            Debug.Log("Not Ok");
+        }
+    }
+
+    public async Task StartSharedRoom(NetworkRunner runner)
+    {
+        var customProps = new Dictionary<string, SessionProperty>
+        {
+            ["maxLevel"] = 2,
+            ["minLevel"] = 1
+        };
+
+        var result = await runner.StartGame(new StartGameArgs()
+        {
+            GameMode = GameMode.Host,
+            CustomLobbyName = "MyCustomLobby",
+            SessionProperties = customProps
+        });
+
+        if (result.Ok)
+        {
+            // all good
+        }
+        else
+        {
+            Debug.LogError($"Failed to Start: {result.ShutdownReason}");
+        }
+    }
     public async void GameStart(GameMode mode, string roomName)
     {
         networkRunner.ProvideInput = true;
+
+        var customProps = new Dictionary<string, SessionProperty>
+        {
+            ["maxLevel"] = 2,
+            ["minLevel"] = 1
+        };
 
         var startGameArgs = new StartGameArgs()
         {
             GameMode = mode,
             SessionName = roomName,
             Scene = SceneRef.FromIndex(0),
+            PlayerCount = 5,
+            SessionProperties = customProps
         };
 
         await networkRunner.StartGame(startGameArgs);
@@ -74,7 +130,7 @@ public class PhotonManager : MonoBehaviour, IPlayerJoined, IPlayerLeft, INetwork
     public void PlayerJoined(PlayerRef player)
     {
         Debug.LogWarning("Join Player");
-       
+
         string message = "Join Player : " + player.PlayerId;
         text_Status.text = message;
     }
@@ -117,17 +173,17 @@ public class PhotonManager : MonoBehaviour, IPlayerJoined, IPlayerLeft, INetwork
 
     public void OnInputMissing(NetworkRunner runner, PlayerRef player, NetworkInput input)
     {
-     
+
     }
 
     public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason)
     {
-  
+
     }
 
     public void OnConnectedToServer(NetworkRunner runner)
     {
-        
+
     }
 
     public void OnDisconnectedFromServer(NetworkRunner runner, NetDisconnectReason reason)
@@ -152,7 +208,10 @@ public class PhotonManager : MonoBehaviour, IPlayerJoined, IPlayerLeft, INetwork
 
     public void OnSessionListUpdated(NetworkRunner runner, List<SessionInfo> sessionList)
     {
-
+        for (int i = 0; i < sessionList.Count; i++)
+        {
+            Debug.Log(sessionList[i].Properties["minLevel"]);
+        }
     }
 
     public void OnCustomAuthenticationResponse(NetworkRunner runner, Dictionary<string, object> data)
@@ -177,7 +236,7 @@ public class PhotonManager : MonoBehaviour, IPlayerJoined, IPlayerLeft, INetwork
 
     public void OnSceneLoadDone(NetworkRunner runner)
     {
- 
+
     }
 
     public void OnSceneLoadStart(NetworkRunner runner)
