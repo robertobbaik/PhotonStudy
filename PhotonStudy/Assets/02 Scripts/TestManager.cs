@@ -31,15 +31,8 @@ public class TestManager : NetworkBehaviour
     }
 
     [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
-    private void RpcInitialSpaceshipSpawn11()
-    {
-        Debug.Log("asd");
-    }
-
-    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
     private void RpcTestMessage()
     {
         Debug.Log("asd");
     }
-
 }
