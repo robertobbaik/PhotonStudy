@@ -12,12 +12,14 @@ public class TestManager : NetworkBehaviour
     public TextMeshProUGUI text_Status;
     public TextMeshProUGUI text_GetNumber;
     public int a;
+
+    public string nickname;
     private void Start()
     {
         button_TestMessage.onClick.AddListener(() =>
         {
-            a++;
-            RpcTestMessage(a.ToString());
+            
+            RpcTestMessage(nickname);
         });
 
         a = 0;

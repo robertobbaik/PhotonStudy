@@ -18,26 +18,38 @@ public class PhotonManager : MonoBehaviour, IPlayerJoined, IPlayerLeft, INetwork
     public GameObject playerPrefab;
     public NetworkRunner networkRunner;
 
+    public Dictionary<string, string> dic_UserList = new();
+
     void Start()
     {
-        button_JoinRoom.onClick.AddListener(async () =>
+        // button_JoinRoom.onClick.AddListener(async () =>
+        // {
+        //     Task task = JoinLobby(networkRunner);
+        //     await task;
+        //     // OnClick_JoinRoom();
+        // });
+
+        button_JoinRoom.onClick.AddListener(() =>
         {
-            Task task = JoinLobby(networkRunner);
-            await task;
-            // OnClick_JoinRoom();
+            OnClick_JoinRoom();
         });
 
-        button_SendMessage.onClick.AddListener(async () =>
+        // button_SendMessage.onClick.AddListener(async () =>
+        // {
+        //     //OnClick_SendMessage();
+        //     Task task = StartSharedRoom(networkRunner);
+        //     await task;
+        // });
+
+        button_SendMessage.onClick.AddListener(() =>
         {
-            //OnClick_SendMessage();
-            Task task = StartSharedRoom(networkRunner);
-            await task;
+            OnClick_SendMessage();
         });
     }
 
     public void Test2()
     {
-        Debug.Log("Send Message~~~");
+
     }
 
     private void Update()
@@ -45,6 +57,11 @@ public class PhotonManager : MonoBehaviour, IPlayerJoined, IPlayerLeft, INetwork
         if (Input.GetKeyDown(KeyCode.Escape))
         {
             Application.Quit();
+        }
+
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            GetUserId();
         }
     }
 
@@ -62,7 +79,7 @@ public class PhotonManager : MonoBehaviour, IPlayerJoined, IPlayerLeft, INetwork
 
     public void TestSessionProperty()
     {
-       
+
     }
 
     public async Task JoinLobby(NetworkRunner runner)
@@ -79,6 +96,21 @@ public class PhotonManager : MonoBehaviour, IPlayerJoined, IPlayerLeft, INetwork
         }
     }
 
+    public void GetUserId()
+    {
+        foreach (var player in networkRunner.ActivePlayers)
+        {
+            string userId = networkRunner.GetPlayerUserId(player);
+            Debug.Log($"PlayerId : {userId}");
+        }
+
+
+        //networkRunner.ActivePlayers.
+        Debug.Log(networkRunner.GetPlayerUserId());
+
+        text_Status.text = networkRunner.GetPlayerUserId();
+    }
+
     public async Task StartSharedRoom(NetworkRunner runner)
     {
         var customProps = new Dictionary<string, SessionProperty>
@@ -87,7 +119,7 @@ public class PhotonManager : MonoBehaviour, IPlayerJoined, IPlayerLeft, INetwork
             ["minLevel"] = 1
         };
 
-        
+
 
         var result = await runner.StartGame(new StartGameArgs()
         {
@@ -130,11 +162,18 @@ public class PhotonManager : MonoBehaviour, IPlayerJoined, IPlayerLeft, INetwork
         Debug.Log(networkRunner.IsConnectedToServer);
     }
 
+    [Rpc(RpcSources.InputAuthority, RpcTargets.All)]
+    public void RpcJoinMessage(string nickname)
+    {
+        Debug.Log(networkRunner.GetPlayerUserId());
+    }
+
     public void PlayerJoined(PlayerRef player)
     {
         Debug.LogWarning("Join Player");
 
         string message = "Join Player : " + player.PlayerId;
+
         text_Status.text = message;
     }
 
