@@ -14,15 +14,31 @@ public class TestManager : NetworkBehaviour
     public int a;
 
     public string nickname;
+
+    private void Awake()
+    {
+        PhotonManager.onJoinCallBack = (nickname, playerRef) =>
+        {
+            RpcJoinMessage(nickname, playerRef);
+        };
+    }
     private void Start()
     {
         button_TestMessage.onClick.AddListener(() =>
         {
-            
             RpcTestMessage(nickname);
         });
 
         a = 0;
+    }
+    
+    [Rpc(RpcSources.All, RpcTargets.All)]
+    public void RpcJoinMessage(string nickname, PlayerRef playerRef)
+    {
+        Debug.Log(nickname);
+        Debug.Log(playerRef.PlayerId);
+
+        text_Status.text = $"{nickname} has Join Game";
     }
 
     public override void FixedUpdateNetwork()
@@ -48,7 +64,6 @@ public class TestManager : NetworkBehaviour
     {
         try
         {
-
             text_Status.text = "SendComplete";
         }
         catch (Exception e)

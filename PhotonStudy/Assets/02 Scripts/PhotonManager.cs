@@ -8,8 +8,9 @@ using Fusion.Sockets;
 using System;
 using TMPro;
 using System.Threading.Tasks;
+using Unity.VisualScripting;
 
-public class PhotonManager : MonoBehaviour, IPlayerJoined, IPlayerLeft, INetworkRunnerCallbacks
+public class PhotonManager : MonoBehaviour, IPlayerLeft, INetworkRunnerCallbacks
 {
     public Button button_JoinRoom;
     public Button button_SendMessage;
@@ -17,11 +18,19 @@ public class PhotonManager : MonoBehaviour, IPlayerJoined, IPlayerLeft, INetwork
     public TextMeshProUGUI text_RoomName;
     public GameObject playerPrefab;
     public NetworkRunner networkRunner;
+    public TMP_InputField inputField_nickname;
+
+    public delegate void OnJoinCallBack(string nickname, PlayerRef playerRef);
+    public static OnJoinCallBack onJoinCallBack;
 
     public Dictionary<string, string> dic_UserList = new();
+    public string nickname;
 
+    public 
     void Start()
     {
+        nickname = "123";
+
         // button_JoinRoom.onClick.AddListener(async () =>
         // {
         //     Task task = JoinLobby(networkRunner);
@@ -79,7 +88,7 @@ public class PhotonManager : MonoBehaviour, IPlayerJoined, IPlayerLeft, INetwork
 
     public void TestSessionProperty()
     {
-
+        
     }
 
     public async Task JoinLobby(NetworkRunner runner)
@@ -104,8 +113,6 @@ public class PhotonManager : MonoBehaviour, IPlayerJoined, IPlayerLeft, INetwork
             Debug.Log($"PlayerId : {userId}");
         }
 
-
-        //networkRunner.ActivePlayers.
         Debug.Log(networkRunner.GetPlayerUserId());
 
         text_Status.text = networkRunner.GetPlayerUserId();
@@ -118,8 +125,6 @@ public class PhotonManager : MonoBehaviour, IPlayerJoined, IPlayerLeft, INetwork
             ["maxLevel"] = 2,
             ["minLevel"] = 1
         };
-
-
 
         var result = await runner.StartGame(new StartGameArgs()
         {
@@ -162,19 +167,21 @@ public class PhotonManager : MonoBehaviour, IPlayerJoined, IPlayerLeft, INetwork
         Debug.Log(networkRunner.IsConnectedToServer);
     }
 
-    [Rpc(RpcSources.InputAuthority, RpcTargets.All)]
-    public void RpcJoinMessage(string nickname)
+    [Rpc(RpcSources.All, RpcTargets.All)]
+    public void RpcJoinMessage(string nickname, PlayerRef playerRef)
     {
-        Debug.Log(networkRunner.GetPlayerUserId());
+        Debug.Log(nickname);
+        Debug.Log(playerRef.PlayerId);
+
+        text_Status.text = $"{nickname} has Join Game";
     }
 
-    public void PlayerJoined(PlayerRef player)
+
+    [Rpc(RpcSources.All, RpcTargets.All)]
+    private void RpcTestMessage(string message)
     {
-        Debug.LogWarning("Join Player");
-
-        string message = "Join Player : " + player.PlayerId;
-
         text_Status.text = message;
+        Debug.Log(message);
     }
 
     public void PlayerLeft(PlayerRef player)
@@ -195,7 +202,18 @@ public class PhotonManager : MonoBehaviour, IPlayerJoined, IPlayerLeft, INetwork
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
     {
         Debug.LogWarning("I NetworkRunner Callback : Join " + player.PlayerId);
-        runner.SendMessage("Test1");
+        
+        // Debug.LogWarning("Join Player");
+
+        // string message = "Join Player : " + networkRunner.GetPlayerUserId(player);
+
+        // text_Status.text = message;
+
+        if (runner.GetPlayerUserId(player) == networkRunner.GetPlayerUserId())
+        {
+            Debug.Log("Rpc Call");
+            //onJoinCallBack?.Invoke(inputField_nickname.text, player);
+        }
     }
 
     public void Test1()
@@ -285,4 +303,9 @@ public class PhotonManager : MonoBehaviour, IPlayerJoined, IPlayerLeft, INetwork
     {
 
     }
+
+    // public void PlayerJoined(PlayerRef player)
+    // {
+    //     throw new NotImplementedException();
+    // }
 }
