@@ -784,6 +784,7 @@ MonoBehaviour:
   text_Status: {fileID: 1628868023}
   text_GetNumber: {fileID: 1160675819}
   a: 0
+  inputField_nickname: {fileID: 1725391498}
   nickname: 
 --- !u!4 &1121769733
 Transform:
@@ -1173,8 +1174,8 @@ MonoBehaviour:
   text_RoomName: {fileID: 664306640}
   playerPrefab: {fileID: 0}
   networkRunner: {fileID: 1513275918}
-  inputField_nickname: {fileID: 1725391498}
   nickname: 
+  nicknameList: []
 --- !u!114 &1513275918
 MonoBehaviour:
   m_ObjectHideFlags: 0

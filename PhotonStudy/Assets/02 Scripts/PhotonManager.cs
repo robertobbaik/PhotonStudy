@@ -18,7 +18,7 @@ public class PhotonManager : MonoBehaviour, IPlayerLeft, INetworkRunnerCallbacks
     public TextMeshProUGUI text_RoomName;
     public GameObject playerPrefab;
     public NetworkRunner networkRunner;
-    public TMP_InputField inputField_nickname;
+
 
     public delegate void OnJoinCallBack(string nickname, PlayerRef playerRef);
     public static OnJoinCallBack onJoinCallBack;
@@ -26,7 +26,9 @@ public class PhotonManager : MonoBehaviour, IPlayerLeft, INetworkRunnerCallbacks
     public Dictionary<string, string> dic_UserList = new();
     public string nickname;
 
-    public 
+    public List<string> nicknameList = new();
+
+    public
     void Start()
     {
         nickname = "123";
@@ -52,7 +54,7 @@ public class PhotonManager : MonoBehaviour, IPlayerLeft, INetworkRunnerCallbacks
 
         button_SendMessage.onClick.AddListener(() =>
         {
-            OnClick_SendMessage();
+            RpcJoinMessage();
         });
     }
 
@@ -74,9 +76,10 @@ public class PhotonManager : MonoBehaviour, IPlayerLeft, INetworkRunnerCallbacks
         }
     }
 
-    public void OnClick_SendMessage()
+    [Rpc(RpcSources.All, RpcTargets.All)]
+    public void RpcJoinMessage()
     {
-        networkRunner.SendMessage("Test2");
+        text_Status.text = "Message from Ipanema";
     }
 
     public void OnClick_JoinRoom()
@@ -88,7 +91,7 @@ public class PhotonManager : MonoBehaviour, IPlayerLeft, INetworkRunnerCallbacks
 
     public void TestSessionProperty()
     {
-        
+
     }
 
     public async Task JoinLobby(NetworkRunner runner)
@@ -202,18 +205,9 @@ public class PhotonManager : MonoBehaviour, IPlayerLeft, INetworkRunnerCallbacks
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
     {
         Debug.LogWarning("I NetworkRunner Callback : Join " + player.PlayerId);
-        
-        // Debug.LogWarning("Join Player");
-
-        // string message = "Join Player : " + networkRunner.GetPlayerUserId(player);
-
-        // text_Status.text = message;
-
-        if (runner.GetPlayerUserId(player) == networkRunner.GetPlayerUserId())
-        {
-            Debug.Log("Rpc Call");
-            //onJoinCallBack?.Invoke(inputField_nickname.text, player);
-        }
+        Debug.Log(runner.IsPlayer);
+        text_Status.text = $"runner.IsPlayer : {runner.IsPlayer}";
+        text_Status.text = $"runner.IsClient : {runner.IsClient}";
     }
 
     public void Test1()
@@ -303,9 +297,4 @@ public class PhotonManager : MonoBehaviour, IPlayerLeft, INetworkRunnerCallbacks
     {
 
     }
-
-    // public void PlayerJoined(PlayerRef player)
-    // {
-    //     throw new NotImplementedException();
-    // }
 }
