@@ -32,10 +32,10 @@ public class UIManager : NetworkBehaviour, IPlayerJoined
             FusionConnection.Instance.ConnectToRunner("asd");
         });
 
-        button_SendMessage.onClick.AddListener(()=>
-        {
-            FusionConnection.Instance.RPC_SendMessage("Hi");
-        });
+        // button_SendMessage.onClick.AddListener(()=>
+        // {
+        //     FusionConnection.Instance.RPC_SendMessage("Hi");
+        // });
     }
 
 
