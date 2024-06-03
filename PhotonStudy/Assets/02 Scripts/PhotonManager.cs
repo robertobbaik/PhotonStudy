@@ -10,7 +10,7 @@ using TMPro;
 using System.Threading.Tasks;
 using Unity.VisualScripting;
 
-public class PhotonManager : MonoBehaviour, IPlayerLeft, INetworkRunnerCallbacks
+public class PhotonManager : MonoBehaviour, INetworkRunnerCallbacks
 {
     public Button button_JoinRoom;
     public Button button_SendMessage;
@@ -18,8 +18,6 @@ public class PhotonManager : MonoBehaviour, IPlayerLeft, INetworkRunnerCallbacks
     public TextMeshProUGUI text_RoomName;
     public GameObject playerPrefab;
     public NetworkRunner networkRunner;
-
-
     public delegate void OnJoinCallBack(string nickname, PlayerRef playerRef);
     public static OnJoinCallBack onJoinCallBack;
 
@@ -28,33 +26,21 @@ public class PhotonManager : MonoBehaviour, IPlayerLeft, INetworkRunnerCallbacks
 
     public List<string> nicknameList = new();
 
-    public
     void Start()
     {
         nickname = "123";
 
-        // button_JoinRoom.onClick.AddListener(async () =>
-        // {
-        //     Task task = JoinLobby(networkRunner);
-        //     await task;
-        //     // OnClick_JoinRoom();
-        // });
-
-        button_JoinRoom.onClick.AddListener(() =>
+        button_JoinRoom.onClick.AddListener(async () =>
         {
-            OnClick_JoinRoom();
+            Task task = JoinLobby(networkRunner);
+            await task;
         });
 
-        // button_SendMessage.onClick.AddListener(async () =>
-        // {
-        //     //OnClick_SendMessage();
-        //     Task task = StartSharedRoom(networkRunner);
-        //     await task;
-        // });
-
-        button_SendMessage.onClick.AddListener(() =>
+        button_SendMessage.onClick.AddListener(async () =>
         {
-            RpcJoinMessage();
+            //OnClick_SendMessage();
+            Task task = StartSharedRoom(networkRunner);
+            await task;
         });
     }
 
@@ -72,7 +58,7 @@ public class PhotonManager : MonoBehaviour, IPlayerLeft, INetworkRunnerCallbacks
 
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            GetUserId();
+            RpcJoinMessage(networkRunner, "efg");
         }
     }
 
@@ -86,7 +72,7 @@ public class PhotonManager : MonoBehaviour, IPlayerLeft, INetworkRunnerCallbacks
     {
         Debug.Log("OnClick");
         text_RoomName.text = "On Click";
-        GameStart(GameMode.Shared, "");
+        //GameStart(GameMode.Shared, "");
     }
 
     public void TestSessionProperty()
@@ -100,10 +86,12 @@ public class PhotonManager : MonoBehaviour, IPlayerLeft, INetworkRunnerCallbacks
 
         if (result.Ok)
         {
+            text_Status.text = "Success Join Lobby";
             Debug.Log("OK");
         }
         else
         {
+            text_Status.text = "Failed Join Lobby";
             Debug.Log("Not Ok");
         }
     }
@@ -131,7 +119,7 @@ public class PhotonManager : MonoBehaviour, IPlayerLeft, INetworkRunnerCallbacks
 
         var result = await runner.StartGame(new StartGameArgs()
         {
-            GameMode = GameMode.Host,
+            GameMode = GameMode.Shared,
             CustomLobbyName = "MyCustomLobby",
             SessionProperties = customProps
         });
@@ -145,43 +133,42 @@ public class PhotonManager : MonoBehaviour, IPlayerLeft, INetworkRunnerCallbacks
             Debug.LogError($"Failed to Start: {result.ShutdownReason}");
         }
     }
-    public async void GameStart(GameMode mode, string roomName)
-    {
-        networkRunner.ProvideInput = true;
+    // public async void GameStart(GameMode mode, string roomName)
+    // {
+    //     networkRunner.ProvideInput = true;
 
-        var customProps = new Dictionary<string, SessionProperty>
-        {
-            ["maxLevel"] = 2,
-            ["minLevel"] = 1
-        };
+    //     var customProps = new Dictionary<string, SessionProperty>
+    //     {
+    //         ["maxLevel"] = 2,
+    //         ["minLevel"] = 1
+    //     };
 
-        var startGameArgs = new StartGameArgs()
-        {
-            GameMode = mode,
-            SessionName = roomName,
-            Scene = SceneRef.FromIndex(0),
-            PlayerCount = 5,
-            SessionProperties = customProps
-        };
 
-        await networkRunner.StartGame(startGameArgs);
-        text_RoomName.text = roomName;
+    //     text_RoomName.text = roomName;
 
-        Debug.Log(networkRunner.IsConnectedToServer);
-    }
+    //     Debug.Log(networkRunner.IsConnectedToServer);
+    // }
 
-    [Rpc(RpcSources.All, RpcTargets.All)]
-    public void RpcJoinMessage(string nickname, PlayerRef playerRef)
+    [Rpc]
+    public static void RpcJoinMessage(NetworkRunner networkRunner, string nickname)
     {
         Debug.Log(nickname);
-        Debug.Log(playerRef.PlayerId);
+        Debug.Log(networkRunner.GetPlayerUserId());
 
-        text_Status.text = $"{nickname} has Join Game";
+        
     }
 
+    // [Rpc]
+    // public static void RPC_TestMessage(NetworkRunner runner, string message)
+    // {
+    //     Debug.Log(nickname);
+    //     Debug.Log(networkRunner.GetPlayerUserId());
+
+    //     text_Status.text = $"{nickname} has Join Game";
+    // }
 
     [Rpc(RpcSources.All, RpcTargets.All)]
-    private void RpcTestMessage(string message)
+    public void RpcTestMessage(string message)
     {
         text_Status.text = message;
         Debug.Log(message);
@@ -205,9 +192,15 @@ public class PhotonManager : MonoBehaviour, IPlayerLeft, INetworkRunnerCallbacks
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
     {
         Debug.LogWarning("I NetworkRunner Callback : Join " + player.PlayerId);
-        Debug.Log(runner.IsPlayer);
-        text_Status.text = $"runner.IsPlayer : {runner.IsPlayer}";
-        text_Status.text = $"runner.IsClient : {runner.IsClient}";
+
+        if (runner.UserId == networkRunner.GetPlayerUserId())
+        {
+            text_Status.text = "It's me";
+        }
+        else
+        {
+            text_Status.text = "Another Player";
+        }
     }
 
     public void Test1()

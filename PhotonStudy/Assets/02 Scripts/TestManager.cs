@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Fusion.Sockets;
 using Fusion;
 using UnityEngine.UI;
 using System;
@@ -18,7 +19,7 @@ public class TestManager : NetworkBehaviour
 
     private void Awake()
     {
-
+        //PhotonManager.onJoinCallBack = (nickname, playerRef) => RpcTest(nickname, playerRef);
     }
     private void Start()
     {
@@ -29,6 +30,14 @@ public class TestManager : NetworkBehaviour
     }
 
     [Rpc(RpcSources.All, RpcTargets.All)]
+    public void RpcTest(string nickname, PlayerRef pref)
+    {
+        text_Status.text = nickname;
+        Debug.Log(nickname);
+        Debug.Log(pref.PlayerId);
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
     public void RpcJoinMessage(string nickname)
     {
         Debug.Log(nickname);
@@ -38,7 +47,7 @@ public class TestManager : NetworkBehaviour
 
     public override void FixedUpdateNetwork()
     {
-       
+
     }
 
     [Rpc(RpcSources.All, RpcTargets.All)]
