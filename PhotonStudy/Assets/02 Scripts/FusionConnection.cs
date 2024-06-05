@@ -11,17 +11,22 @@ public class PlayerInfo
     public string nickname;
     public int[] decList;
 }
-public class FusionConnection : MonoBehaviour, IPlayerJoined, INetworkRunnerCallbacks
+public class FusionConnection : MonoBehaviour, INetworkRunnerCallbacks
 {
     public static FusionConnection Instance;
     public bool connectOnAwake = false;
     public NetworkRunner runner;
-
+    public TestNetwork testNetwork;
     public GameObject playerPrefab;
 
     public Dictionary<int, PlayerInfo> dic_PlayerInfos = new();
+    public List<CellUserList> userList = new();
 
+    public bool isLastPlayer;
+    public int networkInitPlayerCount;
     public string playerName;
+
+    public int playerCount;
 
     private void Awake()
     {
@@ -55,15 +60,19 @@ public class FusionConnection : MonoBehaviour, IPlayerJoined, INetworkRunnerCall
             runner = gameObject.AddComponent<NetworkRunner>();
         }
 
+        runner.ProvideInput = true;
+        runner.AddCallbacks(this);
+
         var result = await runner.StartGame(new StartGameArgs()
         {
             GameMode = GameMode.Shared,
-            SessionName = "test",
-            PlayerCount = 4
+            //SessionName = "test",
+            PlayerCount = 2
         });
 
         if (result.Ok)
         {
+            Debug.Log("result.ok");
             UIManager.Instance.SetStatusMessage("Connect Success");
         }
         else
@@ -71,10 +80,15 @@ public class FusionConnection : MonoBehaviour, IPlayerJoined, INetworkRunnerCall
             UIManager.Instance.SetStatusMessage("Connect Failed");
         }
     }
+    
+    public void Disconnect()
+    {
+        runner.Disconnect(runner.LocalPlayer);
+    }
 
     public void OnConnectedToServer(NetworkRunner runner)
     {
-
+        Debug.Log("OnConnectToServer");
     }
 
     public void OnConnectFailed(NetworkRunner runner, NetAddress remoteAddress, NetConnectFailedReason reason)
@@ -122,34 +136,55 @@ public class FusionConnection : MonoBehaviour, IPlayerJoined, INetworkRunnerCall
 
     }
 
-
-    [Rpc(RpcSources.All, RpcTargets.All)]
-    public void RPC_SendMessage(int playerId, PlayerInfo playerInfo)
+    public void SetPlayerList(int playerId, PlayerInfo playerInfo)
     {
-        Debug.Log("RPC Send Message");
+        //Debug.LogWarning("RPC Send Message");
         dic_PlayerInfos.Add(playerId, playerInfo);
+
+        foreach (var item in dic_PlayerInfos)
+        {
+            userList[item.Key].gameObject.SetActive(true);
+            userList[item.Key].Initialize(dic_PlayerInfos[item.Key].nickname);
+        }
     }
 
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
     {
-        Debug.Log("OnPlayerJoined");
-        //UIManager.Instance.SetServerMessage(player.PlayerId.ToString());
-
+        //Debug.LogWarning("OnPlayerJoined");
+        playerCount++;
         if (player == runner.LocalPlayer)
         {
-            Debug.Log("This player is me");
+            NetworkObject networkObject = runner.Spawn(playerPrefab, Vector3.zero, Quaternion.identity,player);
+            StartCoroutine(Initialize(networkObject, player.PlayerId, playerName, player));
             UIManager.Instance.SetServerMessage("This player is me");
+
+            if(runner.SessionInfo.PlayerCount == runner.SessionInfo.MaxPlayers)
+            {
+                Debug.LogWarning("I'm Last Player");
+                isLastPlayer = true;
+            }
         }
         else
         {
-            Debug.Log("This player is not me");
-            UIManager.Instance.SetServerMessage("This player is not me");
+            UIManager.Instance.SetServerMessage("Another Player Join");
+            // if(playerCount == runner.SessionInfo.MaxPlayers)
+            // {
+            //     Debug.Log("GameStart");
+            //     testNetwork.RpcStartGame();
+            // }
+        }
+    }
+
+    public IEnumerator Initialize(NetworkObject networkObject, int playerId, string playerName, PlayerRef playerRef)
+    {
+        while(!networkObject.IsValid)
+        {
+            yield return null;
         }
 
-        
-        //RPC_SendMessage("hi");
-        //RPC_SendMessage(player.PlayerId.ToString());
-
+        TestNetwork network = networkObject.GetComponent<TestNetwork>();
+        this.testNetwork = network;
+        testNetwork.Init(playerId, playerName, playerRef);
     }
 
     public void OnPlayerLeft(NetworkRunner runner, PlayerRef player)
@@ -179,8 +214,7 @@ public class FusionConnection : MonoBehaviour, IPlayerJoined, INetworkRunnerCall
 
     public void OnSessionListUpdated(NetworkRunner runner, List<SessionInfo> sessionList)
     {
-        Debug.Log("Session List Updated");
-        UIManager.Instance.SetServerMessage("Session List Updated");
+
     }
 
     public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason)
@@ -191,10 +225,5 @@ public class FusionConnection : MonoBehaviour, IPlayerJoined, INetworkRunnerCall
     public void OnUserSimulationMessage(NetworkRunner runner, SimulationMessagePtr message)
     {
 
-    }
-
-    public void PlayerJoined(PlayerRef player)
-    {
-        Debug.Log("me");
     }
 }

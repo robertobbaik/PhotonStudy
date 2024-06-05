@@ -47,7 +47,7 @@ public class TestManager : NetworkBehaviour
 
     public override void FixedUpdateNetwork()
     {
-
+        
     }
 
     [Rpc(RpcSources.All, RpcTargets.All)]
