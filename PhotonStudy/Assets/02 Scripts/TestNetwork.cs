@@ -79,6 +79,7 @@ public class TestNetwork : NetworkBehaviour
 
         if (!Object.HasInputAuthority)
         {
+            Debug.Log("Nickname : " + Nickname);
             Debug.LogWarning("another Player");
             SetPlayerInfo(true);
         }

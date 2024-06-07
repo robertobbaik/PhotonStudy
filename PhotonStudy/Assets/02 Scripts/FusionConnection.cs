@@ -53,6 +53,12 @@ public class FusionConnection : MonoBehaviour, INetworkRunnerCallbacks
 
     public async void ConnectToRunner(string playerName)
     {
+        var customProps = new Dictionary<string, SessionProperty>
+        {
+            ["maxLevel"] = 2,
+            ["minLevel"] = 1,
+        };
+
         this.playerName = playerName;
 
         if (runner == null)
@@ -67,8 +73,9 @@ public class FusionConnection : MonoBehaviour, INetworkRunnerCallbacks
         {
             GameMode = GameMode.Shared,
             //SessionName = "test",
-            PlayerCount = 2
-        });
+            PlayerCount = 2,
+            SessionProperties = customProps
+        }); 
 
         if (result.Ok)
         {
@@ -80,7 +87,7 @@ public class FusionConnection : MonoBehaviour, INetworkRunnerCallbacks
             UIManager.Instance.SetStatusMessage("Connect Failed");
         }
     }
-    
+
     public void Disconnect()
     {
         runner.Disconnect(runner.LocalPlayer);
@@ -150,34 +157,31 @@ public class FusionConnection : MonoBehaviour, INetworkRunnerCallbacks
 
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
     {
-        //Debug.LogWarning("OnPlayerJoined");
+        Debug.LogWarning("OnPlayerJoined");
         playerCount++;
         if (player == runner.LocalPlayer)
         {
-            NetworkObject networkObject = runner.Spawn(playerPrefab, Vector3.zero, Quaternion.identity,player);
+            NetworkObject networkObject = runner.Spawn(playerPrefab, Vector3.zero, Quaternion.identity, player);
             StartCoroutine(Initialize(networkObject, player.PlayerId, playerName, player));
             UIManager.Instance.SetServerMessage("This player is me");
-
-            if(runner.SessionInfo.PlayerCount == runner.SessionInfo.MaxPlayers)
-            {
-                Debug.LogWarning("I'm Last Player");
-                isLastPlayer = true;
-            }
         }
         else
         {
             UIManager.Instance.SetServerMessage("Another Player Join");
-            // if(playerCount == runner.SessionInfo.MaxPlayers)
-            // {
-            //     Debug.Log("GameStart");
-            //     testNetwork.RpcStartGame();
-            // }
         }
+
+        if (runner.SessionInfo.PlayerCount == runner.SessionInfo.MaxPlayers)
+        {
+            Debug.LogWarning("Room is Full");
+            isLastPlayer = true;
+        }
+
+        
     }
 
     public IEnumerator Initialize(NetworkObject networkObject, int playerId, string playerName, PlayerRef playerRef)
     {
-        while(!networkObject.IsValid)
+        while (!networkObject.IsValid)
         {
             yield return null;
         }
@@ -189,7 +193,7 @@ public class FusionConnection : MonoBehaviour, INetworkRunnerCallbacks
 
     public void OnPlayerLeft(NetworkRunner runner, PlayerRef player)
     {
-
+        //runner.Despawn();
     }
 
     public void OnReliableDataProgress(NetworkRunner runner, PlayerRef player, ReliableKey key, float progress)
