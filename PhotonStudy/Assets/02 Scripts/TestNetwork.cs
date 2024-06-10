@@ -19,6 +19,8 @@ public class TestNetwork : NetworkBehaviour
     [Capacity(6)]
     public NetworkArray<int> DecList {get;}
     public int[] dec = new int[]{1,2,3,4,5,101};
+    [Networked]
+    public int Score {get; private set;}
 
     public PlayerRef playerRef;
 

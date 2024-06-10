@@ -19,14 +19,16 @@ public class FusionConnection : MonoBehaviour, INetworkRunnerCallbacks
     public TestNetwork testNetwork;
     public GameObject playerPrefab;
 
+    public int myScore;
+
     public Dictionary<int, PlayerInfo> dic_PlayerInfos = new();
     public List<CellUserList> userList = new();
 
     public bool isLastPlayer;
     public int networkInitPlayerCount;
     public string playerName;
-
     public int playerCount;
+    public bool isHost;
 
     private void Awake()
     {
@@ -48,18 +50,50 @@ public class FusionConnection : MonoBehaviour, INetworkRunnerCallbacks
             runner = gameObject.AddComponent<NetworkRunner>();
         }
 
+        this.playerName = playerName;
+
         await runner.JoinSessionLobby(SessionLobby.Shared);
+
     }
 
-    public async void ConnectToRunner(string playerName)
+    public void SetRoomProperty()
     {
         var customProps = new Dictionary<string, SessionProperty>
         {
-            ["maxLevel"] = 2,
+            ["maxLevel"] = 3,
+            ["minLevel"] = 4,
+        };
+
+        runner.SessionInfo.UpdateCustomProperties(customProps);
+    }
+
+    public async void JoinSession(string sessionName)
+    {
+        if (runner == null)
+        {
+            runner = gameObject.AddComponent<NetworkRunner>();
+        }
+
+        runner.ProvideInput = true;
+        runner.AddCallbacks(this);
+
+        var result = await runner.StartGame(new StartGameArgs()
+        {
+            GameMode = GameMode.Shared,
+            SessionName = sessionName,
+            PlayerCount = 2,
+        });
+    }
+
+    public async void CreateSession()
+    {
+        var customProps = new Dictionary<string, SessionProperty>
+        {
+            ["maxLevel"] = myScore,
             ["minLevel"] = 1,
         };
 
-        this.playerName = playerName;
+        //this.playerName = playerName;
 
         if (runner == null)
         {
@@ -75,7 +109,7 @@ public class FusionConnection : MonoBehaviour, INetworkRunnerCallbacks
             //SessionName = "test",
             PlayerCount = 2,
             SessionProperties = customProps
-        }); 
+        });
 
         if (result.Ok)
         {
@@ -176,7 +210,7 @@ public class FusionConnection : MonoBehaviour, INetworkRunnerCallbacks
             isLastPlayer = true;
         }
 
-        
+
     }
 
     public IEnumerator Initialize(NetworkObject networkObject, int playerId, string playerName, PlayerRef playerRef)
@@ -216,9 +250,39 @@ public class FusionConnection : MonoBehaviour, INetworkRunnerCallbacks
 
     }
 
+    public bool ContainScore(int targetScore, int myScore)
+    {
+        bool isJoin = Mathf.Abs(targetScore - myScore) <= 1;
+        return isJoin; 
+    }
+
     public void OnSessionListUpdated(NetworkRunner runner, List<SessionInfo> sessionList)
     {
+        if(sessionList.Count == 0)
+        {
+            CreateSession();
+            return;
+        }
 
+        bool isCreate = false;
+
+        foreach (var session in sessionList)
+        {
+            Debug.Log(session.Name);
+            Debug.Log(session.Properties["maxLevel"]);
+
+            if(ContainScore(session.Properties["maxLevel"], myScore))
+            {
+                JoinSession(session.Name);
+                isCreate = true;
+                break;
+            }
+        }
+
+        if(!isCreate)
+        {
+            CreateSession();
+        }
     }
 
     public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason)

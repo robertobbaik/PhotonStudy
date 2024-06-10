@@ -8,7 +8,10 @@ public class UIManager : MonoBehaviour
 {
     public static UIManager Instance;
     public Button button_ConnectLobby;
+    public Button button_ConnectLobbySession;
     public Button button_SendMessage;
+
+    public Button button_SetRoomProperty;
     public GameObject playerPrefab;
     public Canvas canvas;
 
@@ -25,9 +28,23 @@ public class UIManager : MonoBehaviour
 
         button_ConnectLobby.onClick.AddListener(() =>
         {
-            FusionConnection.Instance.ConnectToRunner(inputField_Nickname.text);
+            FusionConnection.Instance.CreateSession();
         });
 
+        button_ConnectLobbySession.onClick.AddListener(()=>
+        {
+            FusionConnection.Instance.ConnectToLobby(inputField_Nickname.text);
+        });
+
+        button_SetRoomProperty.onClick.AddListener(()=>
+        {
+            SetRoomProperty();
+        });        
+    }
+
+    public void SetRoomProperty()
+    {
+        FusionConnection.Instance.SetRoomProperty();
     }
 
     public void SetServerMessage(string message)
