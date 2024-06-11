@@ -37,6 +37,8 @@ public class FusionConnection : MonoBehaviour, INetworkRunnerCallbacks
             Instance = this;
         }
 
+        myScore = 1000;
+
         if (connectOnAwake == true)
         {
 
@@ -83,17 +85,27 @@ public class FusionConnection : MonoBehaviour, INetworkRunnerCallbacks
             SessionName = sessionName,
             PlayerCount = 2,
         });
+
+        if (result.Ok)
+        {
+            Debug.Log("result.ok");
+            UIManager.Instance.SetStatusMessage("Connect Success");
+        }
+        else
+        {
+            UIManager.Instance.SetStatusMessage("Connect Failed");
+        }
     }
+
+    public float averageRate;
 
     public async void CreateSession()
     {
         var customProps = new Dictionary<string, SessionProperty>
         {
-            ["maxLevel"] = myScore,
-            ["minLevel"] = 1,
+            ["averageScore"] = myScore,
+            ["averageRate"] = 40,
         };
-
-        //this.playerName = playerName;
 
         if (runner == null)
         {
@@ -106,7 +118,6 @@ public class FusionConnection : MonoBehaviour, INetworkRunnerCallbacks
         var result = await runner.StartGame(new StartGameArgs()
         {
             GameMode = GameMode.Shared,
-            //SessionName = "test",
             PlayerCount = 2,
             SessionProperties = customProps
         });
@@ -179,7 +190,6 @@ public class FusionConnection : MonoBehaviour, INetworkRunnerCallbacks
 
     public void SetPlayerList(int playerId, PlayerInfo playerInfo)
     {
-        //Debug.LogWarning("RPC Send Message");
         dic_PlayerInfos.Add(playerId, playerInfo);
 
         foreach (var item in dic_PlayerInfos)
@@ -209,8 +219,6 @@ public class FusionConnection : MonoBehaviour, INetworkRunnerCallbacks
             Debug.LogWarning("Room is Full");
             isLastPlayer = true;
         }
-
-
     }
 
     public IEnumerator Initialize(NetworkObject networkObject, int playerId, string playerName, PlayerRef playerRef)
@@ -250,15 +258,19 @@ public class FusionConnection : MonoBehaviour, INetworkRunnerCallbacks
 
     }
 
-    public bool ContainScore(int targetScore, int myScore)
+    public bool CompareScore(int targetScore, int myScore, int compareRate)
     {
-        bool isJoin = Mathf.Abs(targetScore - myScore) <= 1;
-        return isJoin; 
+        float rate = compareRate * 0.001f;
+        float targetScoreRate = targetScore * rate;
+        int targetRate = Mathf.RoundToInt(targetScoreRate);
+
+        bool isJoin = Mathf.Abs(targetScore - myScore) <= targetRate;
+        return isJoin;
     }
 
     public void OnSessionListUpdated(NetworkRunner runner, List<SessionInfo> sessionList)
     {
-        if(sessionList.Count == 0)
+        if (sessionList.Count == 0)
         {
             CreateSession();
             return;
@@ -269,9 +281,9 @@ public class FusionConnection : MonoBehaviour, INetworkRunnerCallbacks
         foreach (var session in sessionList)
         {
             Debug.Log(session.Name);
-            Debug.Log(session.Properties["maxLevel"]);
+            Debug.Log(session.Properties["averageScore"]);
 
-            if(ContainScore(session.Properties["maxLevel"], myScore))
+            if (CompareScore(session.Properties["averageScore"], myScore, session.Properties["averageRate"]))
             {
                 JoinSession(session.Name);
                 isCreate = true;
@@ -279,7 +291,7 @@ public class FusionConnection : MonoBehaviour, INetworkRunnerCallbacks
             }
         }
 
-        if(!isCreate)
+        if (!isCreate)
         {
             CreateSession();
         }
