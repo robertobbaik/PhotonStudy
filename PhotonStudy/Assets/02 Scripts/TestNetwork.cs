@@ -13,8 +13,7 @@ public class TestNetwork : NetworkBehaviour
     public int PlayerId { get; private set; }
     [Networked]
     public string Nickname { get; private set; }
-    // [Networked]
-    // public CustomData CustomData {get; private set;}
+
     [Networked]
     [Capacity(6)]
     public NetworkArray<int> DecList {get;}
@@ -23,11 +22,6 @@ public class TestNetwork : NetworkBehaviour
     public int Score {get; private set;}
 
     public PlayerRef playerRef;
-
-    // private void Start()
-    // {
-    //     playerCount = 0;
-    // }
 
     [Rpc(RpcSources.All, RpcTargets.All)]
     public void RpcSendMessage(int id)
@@ -50,7 +44,6 @@ public class TestNetwork : NetworkBehaviour
         {
             UIManager.Instance.button_SendMessage.onClick.AddListener(() =>
             {
-                //RpcSendMessageTest(PlayerId);
                 RpcStartGame();
             });
             SetPlayerInfo(false);

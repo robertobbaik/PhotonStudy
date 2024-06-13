@@ -60,13 +60,9 @@ public class FusionConnection : MonoBehaviour, INetworkRunnerCallbacks
 
     public void SetRoomProperty()
     {
-        var customProps = new Dictionary<string, SessionProperty>
-        {
-            ["maxLevel"] = 3,
-            ["minLevel"] = 4,
-        };
-
-        runner.SessionInfo.UpdateCustomProperties(customProps);
+       Debug.Log(runner.SessionInfo.IsOpen);
+       runner.SessionInfo.IsOpen = false;
+       Debug.Log(runner.SessionInfo.IsOpen);
     }
 
     public async void JoinSession(string sessionName)
@@ -119,6 +115,7 @@ public class FusionConnection : MonoBehaviour, INetworkRunnerCallbacks
         {
             GameMode = GameMode.Shared,
             PlayerCount = 2,
+            
             SessionProperties = customProps
         });
 
@@ -280,6 +277,7 @@ public class FusionConnection : MonoBehaviour, INetworkRunnerCallbacks
 
         foreach (var session in sessionList)
         {
+            if(!session.IsOpen) continue;
             Debug.Log(session.Name);
             Debug.Log(session.Properties["averageScore"]);
 
