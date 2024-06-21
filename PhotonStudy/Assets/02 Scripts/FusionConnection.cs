@@ -97,6 +97,7 @@ public class FusionConnection : MonoBehaviour, INetworkRunnerCallbacks
 
     public async void CreateSession()
     {
+        isHost = true;
         var customProps = new Dictionary<string, SessionProperty>
         {
             ["averageScore"] = myScore,
@@ -172,7 +173,7 @@ public class FusionConnection : MonoBehaviour, INetworkRunnerCallbacks
 
     public void OnInputMissing(NetworkRunner runner, PlayerRef player, NetworkInput input)
     {
-
+        
     }
 
     public void OnObjectEnterAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player)
@@ -193,6 +194,12 @@ public class FusionConnection : MonoBehaviour, INetworkRunnerCallbacks
         {
             userList[item.Key].gameObject.SetActive(true);
             userList[item.Key].Initialize(dic_PlayerInfos[item.Key].nickname);
+        }
+
+        if(testNetwork.IsHost && dic_PlayerInfos.Count == runner.SessionInfo.MaxPlayers)
+        {
+            UIManager.Instance.SetStatusMessage("Game Start at Host");
+            testNetwork.RpcStartGame();
         }
     }
 

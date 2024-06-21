@@ -21,6 +21,8 @@ public class TestNetwork : NetworkBehaviour
     [Networked]
     public int Score {get; private set;}
 
+    [Networked]
+    public bool IsHost{get; private set;}
     public PlayerRef playerRef;
 
     [Rpc(RpcSources.All, RpcTargets.All)]
@@ -96,9 +98,11 @@ public class TestNetwork : NetworkBehaviour
         }
         else
         {
+            IsHost = FusionConnection.Instance.isHost;
             SessionInfo sessionInfo = FusionConnection.Instance.runner.SessionInfo;
             if (sessionInfo.MaxPlayers == sessionInfo.PlayerCount)
             {
+                Debug.Log("Last Player");
                 UIManager.Instance.SetServerMessage("Last Player");
             }
         }
